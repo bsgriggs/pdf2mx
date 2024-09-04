@@ -3,6 +3,7 @@ import fs from "fs";
 import { commit, connectToModel } from "./connect";
 import { IInputModel, IMendixAttribute, getSafeAttributeName } from "./createEntity";
 import { OnlineWorkingCopy } from "mendixplatformsdk";
+import { IParams } from ".";
 
 
 // async function createSamplePage() {    
@@ -26,7 +27,7 @@ import { OnlineWorkingCopy } from "mendixplatformsdk";
 //     await commit(workingCopy, model, "added sample page")
 // }
 
-function createInputForAttribute(attr: IMendixAttribute, input: IInputModel, model: IModel, index: Number) : pages.Widget {
+function createInputForAttribute(attr: IMendixAttribute, input: IInputModel, params: IParams, model: IModel, index: Number) : pages.Widget {
     const ar = domainmodels.AttributeRef.create(model);
     const lt = pages.ClientTemplate.create(model);
     const tx = texts.Translation.create(model);
@@ -35,8 +36,8 @@ function createInputForAttribute(attr: IMendixAttribute, input: IInputModel, mod
     const t = texts.Text.create(model);
     t.translations.push(tx);
     lt.template = t;
-    const attribute = model.findAttributeByQualifiedName(`${input.moduleName}.${input.entityName}.${getSafeAttributeName(attr.name)}`);
-    if (!attribute) throw new Error(`Cannout find attribute ${input.moduleName}.${input.entityName}.${getSafeAttributeName(attr.name)}`);
+    const attribute = model.findAttributeByQualifiedName(`${params.moduleName}.${params.entityName}.${getSafeAttributeName(attr.name)}`);
+    if (!attribute) throw new Error(`Cannout find attribute ${params.moduleName}.${params.entityName}.${getSafeAttributeName(attr.name)}`);
     ar.attribute = attribute;
 
     let wid : pages.AttributeWidget | undefined;
@@ -83,12 +84,12 @@ function createSaveButton(model: IModel) : pages.ActionButton {
     
 }
 
-export async function createPage(input: IInputModel, model: IModel, workingCopy: OnlineWorkingCopy) {
+export async function createPage(input: IInputModel, params: IParams, model: IModel, workingCopy: OnlineWorkingCopy) {
     // const {model, workingCopy} = await connectToModel();
-    const entityName = `${input.moduleName}.${input.entityName}`;
-    const pageName = `${input.entityName}_NewEdit`
-    const module = model.allModules().find(m => m.name === input.moduleName);
-    if (!module) throw new Error(`Module ${input.moduleName} not found`);
+    const entityName = `${params.moduleName}.${params.entityName}`;
+    const pageName = `${params.entityName}_NewEdit`
+    const module = model.allModules().find(m => m.name === params.moduleName);
+    if (!module) throw new Error(`Module ${params.moduleName} not found`);
     const entity = model.findEntityByQualifiedName(entityName);
     if (!entity) throw new Error(`Entity ${entityName} not found`)
     // following the serialized file.
@@ -97,7 +98,7 @@ export async function createPage(input: IInputModel, model: IModel, workingCopy:
     ot.entity = entity
 
     const pp = pages.PageParameter.create(model);
-    pp.name = input.entityName;
+    pp.name = params.entityName;
     pp.parameterType = ot;
 
     const der = domainmodels.DirectEntityRef.create(model);
@@ -111,7 +112,7 @@ export async function createPage(input: IInputModel, model: IModel, workingCopy:
 
     const widgets : pages.Widget[] = []
     input.attributes.forEach((a, i) => {
-        widgets.push(createInputForAttribute(a, input, model, i))
+        widgets.push(createInputForAttribute(a, input, params, model, i))
     })
     // widgets.push(createSaveButton(model));
     

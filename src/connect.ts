@@ -36,7 +36,7 @@ export async function connectToModel(params?: IParams): Promise<IConnectionRetur
         console.debug(`connection params included in request. Using those.`, params)   
         return await connect(params); 
     }
-    return await connect({mendix_token: MENDIX_TOKEN, app_id: APP_ID, branch: BRANCH} as IParams);
+    return await connect({mendix_token: MENDIX_TOKEN, app_id: APP_ID, branch: BRANCH } as IParams);
     
 }
 

@@ -1,6 +1,8 @@
 import { IModel, IWorkingCopy, domainmodels, projects } from "mendixmodelsdk";
 import { commit, connectToModel } from "./connect"
 import { OnlineWorkingCopy } from "mendixplatformsdk";
+import { IParams } from ".";
+import { IAddMutator } from "mendixmodelsdk/src/sdk/internal/deltas";
 
 export interface IMendixAttribute {
     name: string,
@@ -13,9 +15,7 @@ export interface IMendixAttribute {
     width: Number
 }
 export interface IInputModel {
-    attributes: IMendixAttribute[],
-    entityName: string,
-    moduleName: string
+    attributes: IMendixAttribute[]
 }
 function getAttributeType(model: IModel, attr:IMendixAttribute) : domainmodels.AttributeType {
     let at : domainmodels.AttributeType | undefined;
@@ -75,15 +75,17 @@ function createAttribute(model: IModel, data: IMendixAttribute) : domainmodels.A
     return attr;
 }
 
-export async function createEntity(input: IInputModel, model: IModel, workingCopy: OnlineWorkingCopy) {
+export async function createEntity(input: IInputModel, params: IParams, model: IModel, workingCopy: OnlineWorkingCopy) {
     // const {model, workingCopy} = await connectToModel();
-    const m = model.allModules().find(module => module.name === input.moduleName)
+    console.debug('params: ' + params)
+    console.debug('input: ' + input)
+    const m = model.allModules().find(module => module.name === params.moduleName)
     if (!m) {
-        throw new Error(`Unknown module: ${input.moduleName}`);
+        throw new Error(`Unknown module: ${params.moduleName} with model ${model}`);
     }
     // create the entity
     const entity = domainmodels.Entity.create(model);
-    entity.name = input.entityName;
+    entity.name = params.entityName;
     entity.location = {"x": 100, "y": 100};
     entity.imageData = "";
     // add each attribute
