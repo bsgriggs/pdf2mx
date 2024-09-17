@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "aws-lambda": "^1.0.7",
     "dotenv": "^16.4.5",
     "mendixmodelsdk": "^4.89.0",
     "mendixplatformsdk": "^5.1.3",
