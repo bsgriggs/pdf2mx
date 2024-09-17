@@ -5,13 +5,8 @@ import {
   setPlatformConfig,
 } from "mendixplatformsdk";
 // import 'dotenv/config';
-import { IParams } from "./index";
+import { IConnectionReturn, IParams } from "../typings/general";
 // const { MENDIX_TOKEN, APP_ID, BRANCH } = process.env;
-
-export interface IConnectionReturn {
-  model: IModel;
-  workingCopy: OnlineWorkingCopy;
-}
 
 async function connect({
   mendix_token,
@@ -48,10 +43,6 @@ export async function connectToModel(
     errorMessage + "\n app_id was not provided";
   } else if (params.branch === "") {
     errorMessage + "\n branch was not provided";
-  } else if (params.entityName === "") {
-    errorMessage + "\n entityName was not provided";
-  } else if (params.moduleName === "") {
-    errorMessage + "\n moduleName was not provided";
   }
   if (errorMessage) {
     throw new Error(errorMessage.trim());

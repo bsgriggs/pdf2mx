@@ -1,139 +1,156 @@
-import { pages, domainmodels, datatypes, IModel, texts } from "mendixmodelsdk";
-
 import {
-  IInputModel,
-  IMendixAttribute,
-  getSafeAttributeName,
-} from "./createEntity";
-import { OnlineWorkingCopy } from "mendixplatformsdk";
-import { IParams } from ".";
+  pages,
+  domainmodels,
+  datatypes,
+  IModel,
+  texts,
+  projects,
+} from "mendixmodelsdk";
+
+import { getSafeAttributeName } from "./createEntity";
+import { IEntity, IMendixAttribute } from "../typings/general";
 
 function createInputForAttribute(
-  attr: IMendixAttribute,
-  input: IInputModel,
-  params: IParams,
+  mxAttribute: IMendixAttribute,
+  mxEntity: IEntity,
+  module: projects.IModule,
   model: IModel,
   index: Number
 ): pages.Widget {
-  const ar = domainmodels.AttributeRef.create(model);
-  const lt = pages.ClientTemplate.create(model);
-  const tx = texts.Translation.create(model);
-  tx.text = attr.label ? attr.label : attr.name;
-  tx.languageCode = "en_US";
-  const t = texts.Text.create(model);
-  t.translations.push(tx);
-  lt.template = t;
-  const attribute = model.findAttributeByQualifiedName(
-    `${params.moduleName}.${params.entityName}.${getSafeAttributeName(
-      attr.name
-    )}`
-  );
+  const newTranslation = texts.Translation.create(model);
+  newTranslation.text = mxAttribute.label
+    ? mxAttribute.label
+    : mxAttribute.name;
+  newTranslation.languageCode = "en_US";
+
+  const newText = texts.Text.create(model);
+  newText.translations.push(newTranslation);
+
+  const newClientTemplate = pages.ClientTemplate.create(model);
+  newClientTemplate.template = newText;
+  const attributeQualifiedName = `${module.name}.${
+    mxEntity.entityName
+  }.${getSafeAttributeName(mxAttribute.name)}`;
+
+  const newAttributeRef = domainmodels.AttributeRef.create(model);
+  const attribute = model.findAttributeByQualifiedName(attributeQualifiedName);
   if (!attribute)
-    throw new Error(
-      `Cannout find attribute ${params.moduleName}.${
-        params.entityName
-      }.${getSafeAttributeName(attr.name)}`
-    );
-  ar.attribute = attribute;
+    throw new Error(`Cannout find attribute '${attributeQualifiedName}'`);
+  newAttributeRef.attribute = attribute;
 
-  let wid: pages.AttributeWidget | undefined;
+  let newAttributeWidget: pages.AttributeWidget | undefined;
 
-  switch (attr.type) {
+  switch (mxAttribute.type) {
     case "Boolean":
     case "Enumeration":
-      wid = pages.RadioButtonGroup.create(model);
+      newAttributeWidget = pages.RadioButtonGroup.create(model);
+      newAttributeWidget.name = `radioButtons${index}`;
       break;
     case "DateTime":
-      wid = pages.DatePicker.create(model);
+      newAttributeWidget = pages.DatePicker.create(model);
+      newAttributeWidget.name = `datePicker${index}`;
       break;
     case "Decimal":
     case "Integer":
     case "Long":
     case "String":
     default:
-      wid = pages.TextBox.create(model);
+      newAttributeWidget = pages.TextBox.create(model);
+      newAttributeWidget.name = `textBox${index}`;
       break;
   }
-  if (!wid) throw new Error(`Could not determine widget type: ${attr.type}`);
-  wid.name = `radioButtons${index}`;
-  wid.labelTemplate = lt;
-  wid.attributeRef = ar;
-  return wid;
+  if (!newAttributeWidget)
+    throw new Error(`Could not determine widget type: ${mxAttribute.type}`);
+
+  newAttributeWidget.labelTemplate = newClientTemplate;
+  newAttributeWidget.attributeRef = newAttributeRef;
+
+  return newAttributeWidget;
 }
 
 function createSaveButton(model: IModel): pages.ActionButton {
-  const tx = texts.Translation.create(model);
-  const lt = pages.ClientTemplate.create(model);
-  const a = pages.SaveChangesClientAction.create(model);
-  tx.text = "Save";
-  tx.languageCode = "en_US";
-  const t = texts.Text.create(model);
-  t.translations.push(tx);
-  lt.template = t;
-  const ab = pages.ActionButton.create(model);
-  ab.name = "saveButton";
-  ab.caption = lt;
-  ab.buttonStyle = pages.ButtonStyle.Success;
-  ab.action = a;
-  return ab;
+  const newTranslation = texts.Translation.create(model);
+  newTranslation.text = "Save";
+  newTranslation.languageCode = "en_US";
+
+  const newText = texts.Text.create(model);
+  newText.translations.push(newTranslation);
+
+  const newClientTemplate = pages.ClientTemplate.create(model);
+  newClientTemplate.template = newText;
+
+  const newActionButton = pages.ActionButton.create(model);
+  newActionButton.name = "saveButton";
+  newActionButton.caption = newClientTemplate;
+  newActionButton.buttonStyle = pages.ButtonStyle.Success;
+  newActionButton.action = pages.SaveChangesClientAction.create(model);
+
+  return newActionButton;
 }
 
 export async function createPage(
-  input: IInputModel,
-  params: IParams,
-  model: IModel,
-  workingCopy: OnlineWorkingCopy
+  mxEntity: IEntity,
+  module: projects.IModule,
+  model: IModel
 ) {
-  // const {model, workingCopy} = await connectToModel();
-  const entityName = `${params.moduleName}.${params.entityName}`;
-  const pageName = `${params.entityName}_NewEdit`;
-  const module = model.allModules().find((m) => m.name === params.moduleName);
-  if (!module) throw new Error(`Module ${params.moduleName} not found`);
+  const entityName = `${module.name}.${mxEntity.entityName}`;
+  const pageName = `${mxEntity.entityName}_NewEdit`;
   const entity = model.findEntityByQualifiedName(entityName);
   if (!entity) throw new Error(`Entity ${entityName} not found`);
-  // following the serialized file.
 
-  const ot = datatypes.ObjectType.create(model);
-  ot.entity = entity;
+  const newObjectType = datatypes.ObjectType.create(model);
+  newObjectType.entity = entity;
 
-  const pp = pages.PageParameter.create(model);
-  pp.name = params.entityName;
-  pp.parameterType = ot;
+  const newPageParameter = pages.PageParameter.create(model);
+  newPageParameter.name = mxEntity.entityName;
+  newPageParameter.parameterType = newObjectType;
 
-  const der = domainmodels.DirectEntityRef.create(model);
-  der.entity = entity;
+  const newDirectEntityRef = domainmodels.DirectEntityRef.create(model);
+  newDirectEntityRef.entity = entity;
 
-  const pv = pages.PageVariable.create(model);
+  const newPageVariable = pages.PageVariable.create(model);
 
-  const dvs = pages.DataViewSource.create(model);
-  dvs.entityRef = der;
-  dvs.sourceVariable = pv;
+  const newDataViewSource = pages.DataViewSource.create(model);
+  newDataViewSource.entityRef = newDirectEntityRef;
+  newDataViewSource.sourceVariable = newPageVariable;
 
   const widgets: pages.Widget[] = [];
-  input.attributes.forEach((a, i) => {
-    widgets.push(createInputForAttribute(a, input, params, model, i));
+  mxEntity.attributes.forEach((attribute, index) => {
+    widgets.push(
+      createInputForAttribute(attribute, mxEntity, module, model, index)
+    );
   });
-  // widgets.push(createSaveButton(model));
 
-  const dv = pages.DataView.create(model);
-  dv.name = "dataView1";
-  dv.dataSource = dvs;
-  dv.widgets.push(...widgets);
-  dv.footerWidgets.push(createSaveButton(model));
+  const newDataView = pages.DataView.create(model);
+  newDataView.name = "dataView1";
+  newDataView.dataSource = newDataViewSource;
+  newDataView.widgets.push(...widgets);
+  newDataView.footerWidgets.push(createSaveButton(model));
 
-  const lca = pages.LayoutCallArgument.create(model);
+  const newLayoutGrid = pages.LayoutGrid.create(model);
+  newLayoutGrid.name = "layoutGrid1";
+  const newLayoutGridRow = pages.LayoutGridRow.createIn(newLayoutGrid);
+  const newLayoutGridColumn = pages.LayoutGridColumn.createIn(newLayoutGridRow);
+  newLayoutGridColumn.weight = 12;
+  newLayoutGridColumn.widgets.push(newDataView);
+
+  const newLayoutCallArgument = pages.LayoutCallArgument.create(model);
   // @ts-ignore
-  lca.__parameter.updateWithRawValue("Atlas_Core.Atlas_Default.Main");
-  lca.widgets.push(dv);
+  newLayoutCallArgument.__parameter.updateWithRawValue(
+    "Atlas_Core.Atlas_Default.Main"
+  );
+  newLayoutCallArgument.widgets.push(newLayoutGrid);
 
-  const lc = pages.LayoutCall.create(model);
-  lc.layout = model.findLayoutByQualifiedName("Atlas_Core.Atlas_Default");
-  lc.arguments.push(lca);
+  const newLayoutCall = pages.LayoutCall.create(model);
+  newLayoutCall.layout = model.findLayoutByQualifiedName(
+    "Atlas_Core.Atlas_Default"
+  );
+  newLayoutCall.arguments.push(newLayoutCallArgument);
 
-  const page = pages.Page.createIn(module);
-  page.name = pageName;
-  page.parameters.push(pp);
-  page.layoutCall = lc;
+  const newPage = pages.Page.createIn(module);
+  newPage.name = pageName;
+  newPage.parameters.push(newPageParameter);
+  newPage.layoutCall = newLayoutCall;
 
-  pv.pageParameter = pp;
+  newPageVariable.pageParameter = newPageParameter;
 }

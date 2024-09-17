@@ -1,59 +1,38 @@
-import { IModel, domainmodels } from "mendixmodelsdk";
-import { OnlineWorkingCopy } from "mendixplatformsdk";
-import { IParams } from ".";
+import { IModel, domainmodels, projects } from "mendixmodelsdk";
+import { IEntity, IMendixAttribute } from "../typings/general";
 
-export interface IMendixAttribute {
-  name: string;
-  label?: string;
-  type:
-    | "Boolean"
-    | "DateTime"
-    | "Decimal"
-    | "Enumeration"
-    | "Integer"
-    | "Long"
-    | "String";
-  top: Number;
-  row: Number;
-  left: Number;
-  height: Number;
-  width: Number;
-}
-export interface IInputModel {
-  attributes: IMendixAttribute[];
-}
 function getAttributeType(
   model: IModel,
   attr: IMendixAttribute
 ): domainmodels.AttributeType {
-  let at: domainmodels.AttributeType | undefined;
+  let newAttributeType: domainmodels.AttributeType | undefined;
 
   switch (attr.type) {
     case "Boolean":
-      at = domainmodels.BooleanAttributeType.create(model);
+      newAttributeType = domainmodels.BooleanAttributeType.create(model);
       break;
     case "Enumeration":
 
     case "DateTime":
-      at = domainmodels.DateTimeAttributeType.create(model);
+      newAttributeType = domainmodels.DateTimeAttributeType.create(model);
       break;
     case "Decimal":
-      at = domainmodels.DecimalAttributeType.create(model);
+      newAttributeType = domainmodels.DecimalAttributeType.create(model);
       break;
     case "Integer":
-      at = domainmodels.IntegerAttributeType.create(model);
+      newAttributeType = domainmodels.IntegerAttributeType.create(model);
       break;
     case "Long":
-      at = domainmodels.LongAttributeType.create(model);
+      newAttributeType = domainmodels.LongAttributeType.create(model);
       break;
     case "String":
-      at = domainmodels.StringAttributeType.create(model);
+      newAttributeType = domainmodels.StringAttributeType.create(model);
       break;
     default:
-      at = domainmodels.StringAttributeType.create(model);
+      newAttributeType = domainmodels.StringAttributeType.create(model);
       break;
   }
-  return at;
+  return newAttributeType;
 }
 
 /**
@@ -71,46 +50,44 @@ export function getSafeAttributeName(rawValue: string): string {
 
 function createAttribute(
   model: IModel,
-  data: IMendixAttribute
+  mxAttribute: IMendixAttribute
 ): domainmodels.Attribute {
-  const attr = domainmodels.Attribute.create(model);
-  const sv = domainmodels.StoredValue.create(model);
-  if (data.type === "Boolean") {
-    sv.defaultValue = "false";
-    attr.value = sv;
+  const newAttribute = domainmodels.Attribute.create(model);
+  const newStoredValue = domainmodels.StoredValue.create(model);
+  if (mxAttribute.type === "Boolean") {
+    newStoredValue.defaultValue = "false";
+    newAttribute.value = newStoredValue;
   }
-  const safeName = getSafeAttributeName(data.name);
-  attr.name = safeName;
-  attr.type = getAttributeType(model, data);
-  console.debug(`creating attribute name: ${safeName} with type ${data.type}`);
-  return attr;
+  const safeName = getSafeAttributeName(mxAttribute.name);
+  newAttribute.name = safeName;
+  newAttribute.type = getAttributeType(model, mxAttribute);
+  console.debug(
+    `creating attribute name '${safeName}' of type '${mxAttribute.type}'`
+  );
+  return newAttribute;
 }
 
-export async function createEntity(
-  input: IInputModel,
-  params: IParams,
+export const createEntity = async (
+  mxEntity: IEntity,
+  domainModel: domainmodels.IDomainModel,
   model: IModel,
-  workingCopy: OnlineWorkingCopy
-) {
-  console.debug("params: " + params);
-  console.debug("input: " + input);
-  let m = model
-    .allModules()
-    .find((module) => module.name === params.moduleName);
+  x: number,
+  y: number
+): Promise<domainmodels.Entity> =>
+  new Promise(async (resolve) => {
+    console.debug("mxEntity: " + mxEntity);
 
-  if (!m) {
-    throw new Error(`Unknown module: ${params.moduleName} with model ${model}`);
-  }
-  // create the entity
-  const entity = domainmodels.Entity.create(model);
-  entity.name = params.entityName;
-  entity.location = { x: 100, y: 100 };
-  entity.imageData = "";
-  // add each attribute
-  input.attributes.forEach((a) => {
-    entity.attributes.push(createAttribute(model, a));
+    // create the entity
+    const entity = domainmodels.Entity.create(model);
+    entity.name = mxEntity.entityName;
+    entity.location = { x: x, y: y };
+    entity.imageData = "";
+    // add each attribute
+    mxEntity.attributes
+      .sort((a, b) => a.row - b.row)
+      .forEach((attribute) => {
+        entity.attributes.push(createAttribute(model, attribute));
+      });
+    domainModel.entities.push(entity);
+    resolve(entity);
   });
-  await m.domainModel.load();
-
-  m.domainModel.entities.push(entity);
-}
