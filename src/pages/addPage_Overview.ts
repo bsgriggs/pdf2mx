@@ -79,7 +79,7 @@ export async function createOverviewPage(
   newLayoutCall.arguments.push(newLayoutCallArgument);
 
   const titleTranslation = texts.Translation.create(model);
-  titleTranslation.text = `${mxEntity.entityName}_Overview`;
+  titleTranslation.text = `${mxEntity.entityName} Overview`;
   titleTranslation.languageCode = "en_US";
 
   const titleText = texts.Text.create(model);
