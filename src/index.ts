@@ -7,9 +7,10 @@
 //import "dotenv/config";
 import { connectToModel, commit } from "./connect";
 import { createEntity } from "./createEntity";
-import { createPage } from "./addPage";
+import { createNewEditPage } from "./pages/addPage_NewEdit";
 import { IData, IEntity, IMendixAttribute, IParams } from "../typings/general";
 import { domainmodels } from "mendixmodelsdk";
+import { createOverviewPage } from "./pages/addPage_Overview";
 
 async function main(data: IData, params: IParams) {
   /**
@@ -40,7 +41,7 @@ async function main(data: IData, params: IParams) {
       }
       //Check for duplicate attribute names
       let cleanAttributes: IMendixAttribute[] = [];
-      for (const attribute of entity.attributes) {
+      for (let attribute of entity.attributes) {
         const existingIAttribute = cleanAttributes.find(
           (existingIAttribute) => existingIAttribute.name === attribute.name
         );
@@ -58,6 +59,8 @@ async function main(data: IData, params: IParams) {
       console.warn(`Received duplicate entity name '${entity.entityName}'`);
     }
   }
+
+  console.debug(JSON.stringify(cleanEntities));
 
   const { model, workingCopy } = await connectToModel(params);
   //Validate module name
@@ -77,11 +80,13 @@ async function main(data: IData, params: IParams) {
   let createdEntities: domainmodels.Entity[] = [];
   let x = 100;
   let y = 100;
-  for (const entity of cleanEntities) {
+  for (let entity of cleanEntities) {
+    console.debug("entity of cleanEntity", entity);
     createdEntities.push(
       await createEntity(entity, existingModule.domainModel, model, x, y)
     );
-    await createPage(entity, existingModule, model);
+    await createNewEditPage(entity, existingModule, model);
+    await createOverviewPage(entity, existingModule, model);
     x += 400;
   }
 
@@ -95,22 +100,25 @@ async function main(data: IData, params: IParams) {
     const parent = createdEntities.find(
       (newEntity) => newEntity.name === entity.parentEntityName
     );
-    if (child && parent) {
-      const newAssociation = domainmodels.Association.create(model);
-      newAssociation.name = `${child.name}_${parent.name}`;
-      newAssociation.child = child;
-      newAssociation.parent = parent;
-      newAssociation.type = domainmodels.AssociationType.Reference;
-      newAssociation.owner = domainmodels.AssociationOwner.Both;
-      newAssociation.childConnection = { x: 0, y: 30 };
-      newAssociation.parentConnection = { x: 100, y: 30 };
+    if (child !== parent) {
+      if (child && parent) {
+        const newAssociation = domainmodels.Association.create(model);
+        newAssociation.name = `${child.name}_${parent.name}`;
+        newAssociation.child = child;
+        newAssociation.parent = parent;
+        newAssociation.type = domainmodels.AssociationType.Reference;
+        newAssociation.owner = domainmodels.AssociationOwner.Both;
+        // these x,y values are percentages
+        newAssociation.childConnection = { x: 0, y: 0 };
+        newAssociation.parentConnection = { x: 100, y: 0 };
 
-      console.debug(`creating association '${newAssociation.name}'`);
-      existingModule.domainModel.associations.push(newAssociation);
-    } else {
-      console.warn(
-        `Unable to create association. Either child '${entity.entityName}' or parent '${entity.parentEntityName}' was not found`
-      );
+        console.debug(`creating association '${newAssociation.name}'`);
+        existingModule.domainModel.associations.push(newAssociation);
+      } else {
+        console.warn(
+          `Unable to create association. Either child '${entity.entityName}' or parent '${entity.parentEntityName}' was not found`
+        );
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { IModel, domainmodels, projects } from "mendixmodelsdk";
+import { IModel, domainmodels } from "mendixmodelsdk";
 import { IEntity, IMendixAttribute } from "../typings/general";
 
 function getAttributeType(
@@ -75,7 +75,7 @@ export const createEntity = async (
   y: number
 ): Promise<domainmodels.Entity> =>
   new Promise(async (resolve) => {
-    console.debug("mxEntity: " + mxEntity);
+    console.debug("creating mxEntity: " + mxEntity.entityName);
 
     // create the entity
     const entity = domainmodels.Entity.create(model);

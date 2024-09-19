@@ -26,10 +26,9 @@
     "dev": "nodemon --exec \"npm run build\" --watch src -e .ts",
     "build": "tsc",
     "zip": "7z a -tzip pdf2mx.zip . -xr!.env -xr!.zip -xr!.git",
-    "zipmac": "rm ./updateModel.zip; zip -r updateModel.zip . -x .env \\*.zip *.git*",
-    "upload": "aws lambda update-function-code --function-name pdf2mx --zip-file fileb://./updateModel.zip --region us-east-1",
-    "upload-pdf": "aws lambda update-function-code --function-name pdf2mx --zip-file fileb://./pdf2mx.zip --region us-east-1"
+    "zipmac": "rm ./pdf2mx.zip; zip -r pdf2mx.zip . -x .env \\*.zip *.git*",
+    "upload": "aws lambda update-function-code --function-name pdf2mx --zip-file fileb://./pdf2mx.zip --region us-east-1"
   },
-  "author": "Conner Charlebois & Luke Karlovich",
+  "author": "Conner Charlebois, Luke Karlovich, & Benjamin Griggs",
   "license": "ISC"
 }

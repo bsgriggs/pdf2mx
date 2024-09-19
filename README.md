@@ -22,7 +22,7 @@ Changes made to pdf2mx code utilizing mendix sdk
 5. Depending on your machine (compresses needed JS files to .zip) (delete previous zip if existing)
    1. windows: Npm run zip
    2. max: Npm run zipmac
-6. Npm run upload (moves zip to aws lambda function)//todo
+6. Upload 'pdf2mx.zip' to AWS Lambda
 
 ### Text Example Payload:
 
