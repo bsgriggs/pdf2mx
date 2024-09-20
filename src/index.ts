@@ -21,7 +21,7 @@ async function main(data: IData, params: IParams) {
 
   //Check that the provided data is valid
   let cleanEntities: IEntity[] = [];
-  for (let entity of data.entities) {
+  for (let entity of data.entities.sort((a, b) => a.sort - b.sort)) {
     //Check for duplicate entity names
     const existingIEntity = cleanEntities.find(
       (existingIEntity) => existingIEntity.entityName === entity.entityName

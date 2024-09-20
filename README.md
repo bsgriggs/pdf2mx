@@ -33,16 +33,13 @@ Changes made to pdf2mx code utilizing mendix sdk
     {
       "entityName": "",
       "parentEntityName": "",
+      "sort": 1
       "attributes": [
         {
           "name": "",
           "label": "optional",
           "type": "Boolean, DateTime, Decimal, Enumeration, Integer, Long, String",
-          "top": 1.05135787,
-          "row": 1,
-          "left": 0.68291432,
-          "height": 0.02320263,
-          "width": 0.20432197
+          "sort": 1,
         }
       ]
     }

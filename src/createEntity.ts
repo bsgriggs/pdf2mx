@@ -84,7 +84,7 @@ export const createEntity = async (
     entity.imageData = "";
     // add each attribute
     mxEntity.attributes
-      .sort((a, b) => a.row - b.row)
+      .sort((a, b) => a.sort - b.sort)
       .forEach((attribute) => {
         entity.attributes.push(createAttribute(model, attribute));
       });

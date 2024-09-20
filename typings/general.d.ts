@@ -18,17 +18,19 @@ export interface IMendixAttribute {
     | "Integer"
     | "Long"
     | "String";
-  top: number;
-  row: number;
-  left: number;
-  height: number;
-  width: number;
+  sort: number;
+  // top: number;
+  // row: number;
+  // left: number;
+  // height: number;
+  // width: number;
 }
 
 export interface IEntity {
   entityName: string;
   attributes: IMendixAttribute[];
   parentEntityName: string;
+  sort: number;
 }
 
 export interface IData {
