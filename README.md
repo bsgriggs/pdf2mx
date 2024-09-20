@@ -2,16 +2,14 @@
 
 This module is used to create domain model entities from a PDF file.
 
-### AWS Auth
+### Set up
 
-In the Mendix module, set constants:
+1. Create a Lambda function in AWS
+2. Compile the code using the steps below
+3. Add the PDF2MX module to a Mendix app.
+   1. Follow the steps inside the PDF2MX module's ReadMe
 
-- AWSAuthentication.AccessKey
-- AWSAuthentication.SecretAccessKey
-
-### TODO:
-
-### Contribute to the Code
+### Compile/Contribute to the Code
 
 Changes made to pdf2mx code utilizing mendix sdk
 
