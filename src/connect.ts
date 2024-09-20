@@ -4,9 +4,7 @@ import {
   OnlineWorkingCopy,
   setPlatformConfig,
 } from "mendixplatformsdk";
-// import 'dotenv/config';
 import { IConnectionReturn, IParams } from "../typings/general";
-// const { MENDIX_TOKEN, APP_ID, BRANCH } = process.env;
 
 async function connect({
   mendix_token,

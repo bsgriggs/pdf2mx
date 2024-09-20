@@ -4,7 +4,6 @@
  * - https://apidocs.rnd.mendix.com/modelsdk/latest/classes/projects.Folder.html#createIn
  */
 
-//import "dotenv/config";
 import { connectToModel, commit } from "./connect";
 import { createEntity } from "./createEntity";
 import { createNewEditPage } from "./pages/addPage_NewEdit";
@@ -13,9 +12,6 @@ import { domainmodels } from "mendixmodelsdk";
 import { createOverviewPage } from "./pages/addPage_Overview";
 
 async function main(data: IData, params: IParams) {
-  /**
-   * remove dupes from input - TODO
-   */
   console.debug("IInputModel", data);
   console.debug("IParams", params);
 
